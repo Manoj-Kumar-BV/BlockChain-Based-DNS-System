@@ -1,0 +1,25 @@
+
+Step 1: Check if nodes are alive
+Invoke-WebRequest -Uri "http://localhost:5001/debug/alive" -Method GET
+Invoke-WebRequest -Uri "http://localhost:5002/debug/alive" -Method GET
+
+Step 2: Register nodes with each other
+Invoke-WebRequest -Uri "http://localhost:5001/nodes/new" -Method POST -ContentType "application/json" -Body '{"nodes": ["localhost:5002"]}'
+Invoke-WebRequest -Uri "http://localhost:5002/nodes/new" -Method POST -ContentType "application/json" -Body '{"nodes": ["localhost:5001"]}'
+
+Step 3: Add DNS mappings
+Invoke-WebRequest -Uri "http://localhost:5001/dns/new" -Method POST -ContentType "application/json" -Body '{"entry1": {"hostname": "www.google.com", "ip": "192.168.12.1", "port": 80}}'
+Invoke-WebRequest -Uri "http://localhost:5001/dns/new" -Method POST -ContentType "application/json" -Body '{"entry1": {"hostname": "www.apple.com", "ip": "8.8.8.8", "port": 443}}'
+Invoke-WebRequest -Uri "http://localhost:5001/dns/new" -Method POST -ContentType "application/json" -Body '{"entry1": {"hostname": "www.apple-signup.com", "ip": "128.162.12.1", "port": 445}}'
+
+Step 4: Mine a block
+Invoke-WebRequest -Uri "http://localhost:5001/debug/force_block" -Method GET
+
+Step 5: Verify blockchain synchronization
+Invoke-WebRequest -Uri "http://localhost:5001/debug/dump_chain" -Method GET
+Invoke-WebRequest -Uri "http://localhost:5002/debug/dump_chain" -Method GET
+
+
+Step 6: Test DNS resolution
+Invoke-WebRequest -Uri "http://localhost:5001/dns/request" -Method POST -ContentType "application/json" -Body '{"hostname": "www.google.com"}'
+Invoke-WebRequest -Uri "http://localhost:5002/dns/request" -Method POST -ContentType "application/json" -Body '{"hostname": "www.apple.com"}'

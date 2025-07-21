@@ -15,7 +15,7 @@ class BlockchainDNSAgent:
         self.model = "llama3.2:1b"  # Primary model
         self.fallback_model = "qwen2.5:0.5b"  # Backup model if needed
         self.system_context = """
-You are an expert AI assistant for a Blockchain-based DNS System. You help users understand:
+You are an expert AI assistant for a Blockchain-based DNS Systemiass . You help users understand:
 
 1. **Blockchain DNS Technology**: How decentralized DNS works, consensus mechanisms, mining
 2. **Security Features**: AI-powered malicious domain detection, threat analysis
@@ -173,7 +173,6 @@ Always provide clear, helpful explanations. When explaining dashboard data, be s
             if include_system_data and live_stats:
                 context += f"\n\n=== LIVE SYSTEM DATA (Real-time) ===\n"
                 context += f"Data captured at: {live_stats.get('readable_time', 'Unknown')}\n\n"
-                
                 # Security data
                 if 'security' in live_stats and 'error' not in live_stats['security']:
                     sec = live_stats['security']
@@ -182,7 +181,6 @@ Always provide clear, helpful explanations. When explaining dashboard data, be s
                     context += f"- Malicious domains detected: {sec.get('malicious_domains', 0)}\n"
                     context += f"- Safe domains: {sec.get('safe_domains', 0)}\n"
                     context += f"- Threat percentage: {sec.get('threat_percentage', 0):.1f}%\n"
-                    
                     if 'recent_predictions' in sec and sec['recent_predictions']:
                         context += f"- Recent predictions: {len(sec['recent_predictions'])} entries\n"
                         recent_malicious = sum(1 for p in sec['recent_predictions'] if p.get('prediction') == 1)
@@ -191,7 +189,21 @@ Always provide clear, helpful explanations. When explaining dashboard data, be s
                         context += f"- Recent predictions: 0 entries (no domains have been analyzed yet)\n"
                 else:
                     context += f"SECURITY ANALYTICS: ERROR - {live_stats.get('security', {}).get('error', 'Data unavailable')}\n"
-                
+
+                # Threat stats (from /api/threat-stats)
+                if 'threat_stats' in live_stats and 'error' not in live_stats['threat_stats']:
+                    ts = live_stats['threat_stats']
+                    context += f"\nTHREAT STATS (FROM /api/threat-stats):\n"
+                    context += f"- Blockchain blocks: {ts.get('blockchain_blocks', 0)}\n"
+                    context += f"- Network nodes: {ts.get('network_nodes', 0)}\n"
+                    context += f"- Total domains analyzed: {ts.get('total_analyzed', 0)}\n"
+                    context += f"- Malicious domains: {ts.get('malicious_domains', 0)}\n"
+                    context += f"- Safe domains: {ts.get('safe_domains', 0)}\n"
+                    context += f"- Threat percentage: {ts.get('threat_percentage', 0)}\n"
+                    context += f"- Recent threats: {len(ts.get('recent_threats', []))}\n"
+                else:
+                    context += f"\nTHREAT STATS: ERROR - {live_stats.get('threat_stats', {}).get('error', 'Data unavailable')}\n"
+
                 # Threat feed
                 if 'threats' in live_stats and 'error' not in live_stats['threats']:
                     threats = live_stats['threats']
@@ -204,28 +216,22 @@ Always provide clear, helpful explanations. When explaining dashboard data, be s
                         context += f"\nRECENT THREATS: No threats detected - system is clean\n"
                 else:
                     context += f"\nRECENT THREATS: ERROR - {live_stats.get('threats', {}).get('error', 'Data unavailable')}\n"
-                
+
                 # Blockchain data
                 if 'blockchain' in live_stats and 'error' not in live_stats['blockchain']:
                     bc = live_stats['blockchain']
                     context += f"\nBLOCKCHAIN NETWORK STATUS:\n"
-                    
-                    # Count active nodes
                     active_nodes = []
                     total_blocks = 0
                     total_pending = 0
-                    
                     for node_key, node_data in bc.items():
                         if isinstance(node_data, dict) and node_data.get('status') == 'active':
                             active_nodes.append(node_data.get('port', 'unknown'))
                             total_blocks = max(total_blocks, node_data.get('total_blocks', 0))
                             total_pending += node_data.get('pending_transactions', 0)
-                    
                     context += f"- Network nodes detected: {len(active_nodes)} active nodes on ports {active_nodes}\n"
                     context += f"- Blockchain length: {total_blocks} blocks\n"
                     context += f"- Total pending transactions across network: {total_pending}\n"
-                    
-                    # Show per-node details
                     for node_key, node_data in bc.items():
                         if isinstance(node_data, dict):
                             port = node_data.get('port', 'unknown')
@@ -233,14 +239,14 @@ Always provide clear, helpful explanations. When explaining dashboard data, be s
                             blocks = node_data.get('total_blocks', 0)
                             pending = node_data.get('pending_transactions', 0)
                             context += f"  Node {port}: {status}, {blocks} blocks, {pending} pending\n"
-                
+
                 # Network data
                 if 'network' in live_stats and 'error' not in live_stats['network']:
                     net = live_stats['network']
                     context += f"\nNETWORK STATUS:\n"
                     context += f"- Connected nodes: {net.get('connected_nodes', 0)}\n"
                     # context += f"- Network health: {net.get('health_status', 'Unknown')}\n"
-                
+
                 context += f"\n=== END LIVE DATA ===\n\n"
                 # ⬇️⬇️⬇️ THIS IS THE UPDATED PART ⬇️⬇️⬇️
                 context += """

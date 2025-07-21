@@ -172,6 +172,31 @@ def ai_analyze_trends():
     except Exception as e:
         return jsonify({"error": str(e)})
 
+@app.route('/api/threat-stats', methods=['GET'])
+def get_threat_stats():
+    """
+    Get threat statistics for dashboard (used by AI agent and dashboard)
+    """
+    try:
+        # Example: Combine or summarize from prediction_history or other sources
+        total_analyzed = len(prediction_history)
+        malicious_domains = sum(1 for p in prediction_history if p['prediction'] == 1)
+        safe_domains = total_analyzed - malicious_domains
+        threat_percentage = (malicious_domains / total_analyzed * 100) if total_analyzed > 0 else 0
+        recent_threats = [p for p in prediction_history if p['prediction'] == 1][-10:]
+        # You can add more fields as needed, e.g., blockchain_blocks, network_nodes, etc.
+        return jsonify({
+            "blockchain_blocks": 0,  # Fill with actual value if available
+            "network_nodes": 0,      # Fill with actual value if available
+            "total_analyzed": total_analyzed,
+            "malicious_domains": malicious_domains,
+            "safe_domains": safe_domains,
+            "threat_percentage": threat_percentage,
+            "recent_threats": recent_threats
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)})
+        
 @app.route('/ai-dashboard-summary', methods=['GET']) 
 def ai_dashboard_summary():
     """Get smart summary of current dashboard state"""
